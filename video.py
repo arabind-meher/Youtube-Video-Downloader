@@ -72,7 +72,7 @@ class YoutubeVideo:
             caption = video.captions.get_by_language_code(lang)
             caption = caption.generate_srt_captions()
 
-            file = open(os.path.join(path, 'caption.srt'), 'w')
+            file = open(os.path.join(path, title + '.srt'), 'w')
             file.write(caption)
             file.close()
             print('done')
