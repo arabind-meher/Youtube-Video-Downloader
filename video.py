@@ -1,4 +1,5 @@
 import os
+import ffmpeg
 
 from pytube import YouTube
 from random_word import RandomWords
@@ -57,18 +58,47 @@ class YoutubeVideo:
             path = os.path.join(path, title + word)
 
         if video_itag != '':
+            print('video --', end=' ')
             video.streams.get_by_itag(video_itag).download(path)
+            print('done')
+
         if audio_itag != '':
+            print('audio --', end=' ')
             video.streams.get_by_itag(audio_itag).download(path)
+            print('done')
+
         if lang != '':
+            print('caption --', end=' ')
             caption = video.captions.get_by_language_code(lang)
             caption = caption.generate_srt_captions()
 
-            file = open(os.path.join(path, 'caption.srt'), 'w')
+            file = open(os.path.join(path, title + '.srt'), 'w')
             file.write(caption)
             file.close()
+            print('done')
 
         if description != '':
+            print('description --', end=' ')
             file = open(os.path.join(path, title + '.txt'), 'w')
             file.write(description)
             file.close()
+            print('done')
+
+        video_ext = ['mp4', 'mkv']
+        audio_ext = ['m4a', 'webm']
+
+        video_file = [
+            file for file in os.listdir(path)
+            if os.path.isfile(os.path.join(path, file)) and file[0] != '.' and file.split('.')[-1] in video_ext
+        ]
+
+        audio_file = [
+            file for file in os.listdir(path)
+            if os.path.isfile(os.path.join(path, file)) and file[0] != '.' and file.split('.')[-1] in audio_ext
+        ]
+
+        video_file = ffmpeg.input(os.path.join(path, video_file[0]))
+        audio_file = ffmpeg.input(os.path.join(path, audio_file[0]))
+
+        ffmpeg.concat(video_file, audio_file, v=1, a=1).output(os.path.join(path, '_' + title + '.mp4')).run()
+        print('Done!')
